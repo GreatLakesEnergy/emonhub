@@ -27,17 +27,35 @@ class EmonHubEmoncmsHTTPInterfacer(EmonHubInterfacer):
             'use_binary':True,
             'apikey': "",
             'url': "http://emoncms.org",
+            'redis_url':'localhost',
+            'redis_port': 6379,
+	    'redis_db':0,
             'senddata': 1,
             'sendstatus': 0,
             'data_send_interval':60,
             'status_send_interval':260,
-            'buffer_size':10,
+            'buffer_size':1000,
         }
 
 	self._compression_level = 9
+	self._batch_size = 30 #how should the data be sent
+	self._retry = 5
         self.buffer = []
         self.lastsent = time.time()
         self.lastsentstatus = time.time()
+	self.r = redis.Redis(self._settings['redis_url'], 
+		 port=self._settings['redis_port'],
+		 db=self._settings['redis_db'] )
+
+	# We wait here until redis has successfully started up
+	redisready = False
+	while not redisready:
+	    try:
+		self.r.client_list()
+		redisready = True
+	    except redis.ConnectionError:
+		logger.info("waiting for redis-server to start...")
+		time.sleep(1.0)
 
     def receiver(self, cargo):
 
@@ -67,16 +85,28 @@ class EmonHubEmoncmsHTTPInterfacer(EmonHubInterfacer):
             # print json.dumps(self.buffer)
             if int(self._settings['senddata']):
                 # Send bulk post
-                if self.bulkpost(self.buffer):
-                    # Clear buffer if successfull else keep buffer and try again
-		    self.buffer = []
+		counter = 0
+		while self.buffer and counter < self._retry:
+			#slice out a piece from the buffer
+			to_send = self.buffer[:self._batch_size]
+			if self.bulkpost(to_send):
+			     # Clear buffer if successfull else keep buffer and try again
+			     self.buffer = self.buffer[self._batch_size:]
+			else:
+			     self._log.warning("Failed contacting server retrying: %s"%str(counter))
+			     self._log.warning("Buffer size is : %s"%str(len(self.buffer)))
+			     counter = counter + 1
 
         if (now-self.lastsentstatus) > int(self._settings['status_send_interval']):
             self.lastsentstatus = now
             if int(self._settings['sendstatus']):
                 self.sendstatus()
 
-    def bulkpost(self,databuffer):
+    def bulkpost(self, databuffer):
+	"""
+	Utitliy function that will prepare raw sensor data to be shipped
+	"""
+
         self._log.info("Prepping bulk post: " + str( databuffer ))
     	#Removing length check fo apikey
         if not 'apikey' in self._settings.keys() or str.lower(str(self._settings['apikey'])) == 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx':
@@ -115,8 +145,11 @@ class EmonHubEmoncmsHTTPInterfacer(EmonHubInterfacer):
         reply = self._send_post(post_url, post_body)
         if reply.lower().strip() == 'ok':
             self._log.debug("acknowledged receipt with '" + reply + "' from " + self._settings['url'])
+            #Send data to LCD
+            self.r.set('server:active',1)
             return True
         else:
+            self.r.set('server:active',0)
             self._log.warning("send failure: wanted 'ok' but got '" +reply+ "'")
             self._log.warning("Keeping buffer till successfull attempt, buffer length: " + str(len(self.buffer)))
             return False
