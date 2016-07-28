@@ -38,6 +38,8 @@ class EmonHubEmoncmsHTTPInterfacer(EmonHubInterfacer):
         }
 
 	self._compression_level = 9
+	self._batch_size = 30 #how should the data be sent
+	self._retry = 5
         self.buffer = []
         self.lastsent = time.time()
         self.lastsentstatus = time.time()
@@ -83,16 +85,28 @@ class EmonHubEmoncmsHTTPInterfacer(EmonHubInterfacer):
             # print json.dumps(self.buffer)
             if int(self._settings['senddata']):
                 # Send bulk post
-                if self.bulkpost(self.buffer):
-                    # Clear buffer if successfull else keep buffer and try again
-		    self.buffer = []
+		counter = 0
+		while self.buffer and counter < self._retry:
+			#slice out a piece from the buffer
+			to_send = self.buffer[:self._batch_size]
+			if self.bulkpost(to_send):
+			     # Clear buffer if successfull else keep buffer and try again
+			     self.buffer = self.buffer[self._batch_size:]
+			else:
+			     self._log.warning("Failed contacting server retrying: %s"%str(counter))
+			     self._log.warning("Buffer size is : %s"%str(len(self.buffer)))
+			     counter = counter + 1
 
         if (now-self.lastsentstatus) > int(self._settings['status_send_interval']):
             self.lastsentstatus = now
             if int(self._settings['sendstatus']):
                 self.sendstatus()
 
-    def bulkpost(self,databuffer):
+    def bulkpost(self, databuffer):
+	"""
+	Utitliy function that will prepare raw sensor data to be shipped
+	"""
+
         self._log.info("Prepping bulk post: " + str( databuffer ))
     	#Removing length check fo apikey
         if not 'apikey' in self._settings.keys() or str.lower(str(self._settings['apikey'])) == 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx':
