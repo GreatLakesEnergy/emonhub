@@ -6,6 +6,7 @@ import paho.mqtt.client as mqtt
 from pydispatch import dispatcher
 from emonhub_interfacer import EmonHubInterfacer
 import Cargo
+#import emonhub.conf
 
 class EmonHubMqttInterfacer(EmonHubInterfacer):
 
@@ -76,12 +77,13 @@ class EmonHubMqttInterfacer(EmonHubInterfacer):
             if topic_parts[1] == "tx":
                 if topic_parts[3] == "values":
                     nodeid = int(topic_parts[2])
-                    
+
                     payload = msg.payload
-                    realdata = payload.split(",")
+                    realdata = payload.split(",")  
+                    names = names
                     self._log.debug("Nodeid: "+str(nodeid)+" values: "+msg.payload)
 
-                    rxc = Cargo.new_cargo(realdata=realdata)
+                    rxc = Cargo.new_cargo(realdata=realdata, names=names, units=units)
                     rxc.nodeid = nodeid
 
                     if rxc:
@@ -92,12 +94,17 @@ class EmonHubMqttInterfacer(EmonHubInterfacer):
                                 self._log.debug(str(rxc.uri) + " Sent to channel' : " + str(channel))
 
     def receiver(self, cargo):
-	
-        self._log.debug(self._name+" Recieved package MQQT" )
+
+        self._log.debug(self._name+" Recieved package" )
         if self._connected:
             topic = self._settings["basetopic"]+"rx/"+str(cargo.nodeid)+"/values"
-            payload = ",".join(map(str,cargo.realdata))
+            #topic = self._settings["basetopic"]+"rx/"+str(cargo.nodeid)
             
+
+            #payload = ",".join(map(lambda x: "#".join(x), zip(cargo.names ,map(str,cargo.realdata))))
+            payload = ",".join(map(lambda x: "#".join(x), zip(cargo.names, map(str,cargo.realdata), cargo.units)))
+            #print("Cargo names========>"+str(payload))
+
             self._log.info("Publishing: "+topic+" "+payload)
             result =self._mqttc.publish(topic, payload=payload, qos=0, retain=False)
             

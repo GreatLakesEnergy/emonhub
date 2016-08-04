@@ -164,6 +164,10 @@ class EmonHubInterfacer(threading.Thread):
 
             # fetch the string of datacodes
             datacodes = ehc.nodelist[node]['rx']['datacodes']
+            rxc.names = ehc.nodelist[node]['rx']['names']
+            rxc.units = ehc.nodelist[node]['rx']['units']
+
+            #self._log.debug("Debuging====="+str(rxc.names))
             
             # fetch a string of data sizes based on the string of datacodes
             datasizes = []
@@ -183,6 +187,9 @@ class EmonHubInterfacer(threading.Thread):
             # if node is listed, but has only a single default datacode for all values
             if node in ehc.nodelist and 'rx' in ehc.nodelist[node] and 'datacode' in ehc.nodelist[node]['rx']:
                 datacode = ehc.nodelist[node]['rx']['datacode']
+                rxc.names = ehc.nodelist[node]['rx']['names']
+                rxc.units = ehc.nodelist[node]['rx']['units']
+
             else:
             # when node not listed or has no datacode(s) use the interfacers default if specified
                 datacode = self._settings['datacode']
@@ -351,6 +358,9 @@ class EmonHubInterfacer(threading.Thread):
 
             # fetch the string of datacodes
             datacodes = ehc.nodelist[dest]['tx']['datacodes']
+            names = ehc.nodelist[node]['rx']['names']
+            units = ehc.nodelist[node]['rx']['units']
+
             
             # fetch a string of data sizes based on the string of datacodes
             datasizes = []

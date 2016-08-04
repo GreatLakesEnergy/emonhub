@@ -1,10 +1,14 @@
 
 import time
+import struct
 from pydispatch import dispatcher
 
 import datetime
 import Cargo
 import EmonHubSerialInterfacer as ehi
+
+#initialize nodes data
+nodelist = {}
 
 """class EmonHubJeeInterfacer
 
@@ -20,7 +24,6 @@ class EmonHubJeeInterfacer(ehi.EmonHubSerialInterfacer):
         com_port (string): path to COM port
 
         """
-
         # Initialization
         if com_baud != 0:
             super(EmonHubJeeInterfacer, self).__init__(name, com_port, com_baud)
@@ -32,6 +35,7 @@ class EmonHubJeeInterfacer(ehi.EmonHubSerialInterfacer):
         if self._ser is not None:
             self._ser.write("v")
             time.sleep(2)
+            
             self._rx_buf = self._rx_buf + self._ser.readline()
             if '\r\n' in self._rx_buf:
                 self._rx_buf=""
@@ -50,7 +54,6 @@ class EmonHubJeeInterfacer(ehi.EmonHubSerialInterfacer):
                 self._log.warning("Device communication error - check settings")
         self._rx_buf=""
         self._ser.flushInput()
-
         # Initialize settings
         self._defaults.update({'pause': 'off', 'interval': 0, 'datacode': 'h'})
 
@@ -67,16 +70,18 @@ class EmonHubJeeInterfacer(ehi.EmonHubSerialInterfacer):
         if all(i in self.info[1] for i in (" i", " g", " @ ", " MHz")):
             self._settings.update(self._jee_settings)
 
+
+
     def read(self):
         """Read data from serial port and process if complete line received.
 
         Return data as a list: [NodeID, val1, val2]
 
         """
-
         # Read serial RX
         self._rx_buf = self._rx_buf + self._ser.readline()
-        #self._log.debug("###### recieved %s"%self._rx_buf)
+
+        #self._log.debug("###### recieved %s"%names)
 
         # If line incomplete, exit
         if '\r\n' not in self._rx_buf:
@@ -219,7 +224,7 @@ class EmonHubJeeInterfacer(ehi.EmonHubSerialInterfacer):
                 self._log.debug(self.name + " broadcasting time: %02d:%02d" % (now.hour, now.minute))
                 self._ser.write("00,%02d,%02d,00,s" % (now.hour, now.minute))
 
-    def send (self, cargo):
+    def send (self, cargo, names, units):
         """
         """
         #self._process_tx(self._txq.get())
