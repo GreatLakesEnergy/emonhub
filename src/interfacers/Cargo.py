@@ -7,6 +7,7 @@ class EmonHubCargo(object):
     nodeid = 0
     names = []
     realdata = []
+    units = []
     rssi = 0
 
     # The class "constructor" - It's actually an initializer
