@@ -31,7 +31,8 @@ sudo ln -s $GIT_PATH/conf/default/emonhub /etc/default/emonhub
 ### create folder and move settings file (unless it exists already)
 if [ ! -f /home/debian/data/emonhub.conf ] ; then
   {
-    sudo mv $GIT_PATH/conf/emonhub.conf /home/debian/data/emonhub.conf
+    #do nothing, The config will come from ansible script
+    #sudo mv $GIT_PATH/conf/emonhub.conf /home/debian/data/emonhub.conf
   }
 fi
 
