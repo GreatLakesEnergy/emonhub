@@ -30,6 +30,7 @@ import interfacers.EmonHubMqttInterfacer
 import interfacers.EmonHubTesterInterfacer
 import interfacers.EmonHubEmoncmsHTTPInterfacer
 import interfacers.EmonHubVEDirectInterfacer
+import interfacers.EmonHubDataLoggerInterfacer
 
 ehi.EmonHubSerialInterfacer = interfacers.EmonHubSerialInterfacer.EmonHubSerialInterfacer
 ehi.EmonHubJeeInterfacer = interfacers.EmonHubJeeInterfacer.EmonHubJeeInterfacer
@@ -39,6 +40,7 @@ ehi.EmonHubMqttInterfacer = interfacers.EmonHubMqttInterfacer.EmonHubMqttInterfa
 ehi.EmonHubTesterInterfacer = interfacers.EmonHubTesterInterfacer.EmonHubTesterInterfacer
 ehi.EmonHubEmoncmsHTTPInterfacer = interfacers.EmonHubEmoncmsHTTPInterfacer.EmonHubEmoncmsHTTPInterfacer
 ehi.EmonHubVEDirectInterfacer = interfacers.EmonHubVEDirectInterfacer.EmonHubVEDirectInterfacer
+ehi.EmonHubDataLoggerInterfacer = interfacers.EmonHubDataLoggerInterfacer.EmonHubDataLoggerInterfacer
 
 """class EmonHub
 
