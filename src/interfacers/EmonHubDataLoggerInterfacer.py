@@ -7,8 +7,8 @@ import emonhub_interfacer as ehi
 from emonhub_interfacer import EmonHubInterfacerInitError
 
 """class EmonhubSerialInterfacer
-
-Monitors the serial port for data
+This interfacer is for the MSRx charger controllers
+Monitors the serial port, connect data logger usb cable first and switch on the bbb
 
 """
 
@@ -87,7 +87,7 @@ class EmonHubDataLoggerInterfacer(ehi.EmonHubInterfacer):
 	"""
 	regulation_mode = {'B':'1','E':'2','F':'3','N':'4','T':'5','I':'6'}
 	string_header = "DAT"
-	product_name = {'MSRx2':'2','MSRx4':'4','MSRx6':'6','MSRx8':'8'}
+	product_name = {'MSRx2':'00002','MSRx4':'00004','MSRx6':'00006','MSRx8':'00008'}
 	load_volt = "---" #If Standard MSRx then "---"
 
 	data = string.replace(data,string_header,'999')
